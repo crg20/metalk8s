@@ -106,6 +106,7 @@ const NoDataGraphText = styled.div`
 const MetricGraphCard = (props) => {
   const { volumeCondition, volumeMetricGraphData } = props;
   const dispatch = useDispatch();
+  const theme = useSelector((state) => state.config.theme);
   const metricsTimeSpan = useSelector(
     (state) => state.app.monitoring.volumeStats.metricsTimeSpan,
   );
@@ -243,7 +244,7 @@ const MetricGraphCard = (props) => {
       ticks: true,
       tickCount: 4,
       labelAngle: -50,
-      labelColor: '#a8b5c1',
+      labelColor: theme.brand.textSecondary,
     },
     title: null,
   };

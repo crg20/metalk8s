@@ -5,10 +5,12 @@ import { useHistory, useLocation } from 'react-router';
 import styled from 'styled-components';
 import { Tabs } from '@scality/core-ui';
 import { padding } from '@scality/core-ui/dist/style/theme';
-import { useQuery } from '../services/utils';
+import { useQuery, useRefreshEffect } from '../services/utils';
 import {
   fetchNodeStatsAction,
   updateNodeStatsAction,
+  refreshNodeStatsAction,
+  stopRefreshNodeStatsAction,
 } from '../ducks/app/monitoring';
 import NodePageHealthTab from '../components/NodePageHealthTab';
 import NodePageAlertsTab from '../components/NodePageAlertsTab';
@@ -36,6 +38,7 @@ const NodePageRSPContainer = styled.div`
 `;
 
 // <NodePageRSP> fetches the data for all the tabs given the current selected Node
+// handles the refresh for the metrics tab
 const NodePageRSP = (props) => {
   const {
     selectedNodeName,
@@ -54,7 +57,7 @@ const NodePageRSP = (props) => {
   // we should initialize the `metricsTimeSpan` in redux base on the URL query.
   const query = useQuery();
   const queryTimespan = query.get('from');
-  let metricsTimeSpan;
+  let metricsTimeSpan = LAST_TWENTY_FOUR_HOURS;
   switch (queryTimespan) {
     case QUERY_LAST_SEVEN_DAYS:
       metricsTimeSpan = LAST_SEVEN_DAYS;
@@ -67,10 +70,6 @@ const NodePageRSP = (props) => {
   }
 
   useEffect(() => {
-    dispatch(updateNodeStatsAction({ metricsTimeSpan: metricsTimeSpan }));
-  }, [metricsTimeSpan, dispatch]);
-
-  useEffect(() => {
     dispatch(
       fetchNodeStatsAction({
         instanceIP,
@@ -79,6 +78,25 @@ const NodePageRSP = (props) => {
       }),
     );
   }, [instanceIP, controlPlaneInterface, workloadPlaneInterface, dispatch]);
+
+  useEffect(() => {
+    dispatch(
+      updateNodeStatsAction({
+        metricsTimeSpan,
+        instanceIP,
+        controlPlaneInterface,
+        workloadPlaneInterface,
+      }),
+    );
+  }, [
+    metricsTimeSpan,
+    instanceIP,
+    controlPlaneInterface,
+    workloadPlaneInterface,
+    dispatch,
+  ]);
+
+  useRefreshEffect(refreshNodeStatsAction, stopRefreshNodeStatsAction);
 
   const isHealthTabActive = location.pathname.endsWith('/health');
   const isAlertsTabActive = location.pathname.endsWith('/alerts');
@@ -101,7 +119,9 @@ const NodePageRSP = (props) => {
       selected: isMetricsTabActive,
       title: 'Metrics',
       onClick: () =>
-        history.push(`/newNodes/${selectedNodeName}/metrics?from=now-24h`),
+        history.push(
+          `/newNodes/${selectedNodeName}/metrics?from=${queryTimespan}`,
+        ),
     },
     {
       selected: isVolumesTabActive,

@@ -20,6 +20,7 @@ const NodePageRSPContainer = styled.div`
 
   .sc-tabs-item-content {
     padding: 0;
+    overflow-y: auto;
   }
 `;
 

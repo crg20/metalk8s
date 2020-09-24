@@ -12,13 +12,13 @@ import {
   updateNodeStatsAction,
   fetchNodeStatsAction,
 } from '../ducks/app/monitoring';
-import { TabContainer } from './CommonLayoutStyle';
+import { TabContainer } from '../components/CommonLayoutStyle';
 import {
   yAxisUsauge,
   yAxis,
   yAxisWriteRead,
   yAxisInOut,
-} from './LinechartSpec';
+} from '../components/LinechartSpec';
 import {
   addMissingDataPoint,
   fromUnixTimestampToDate,

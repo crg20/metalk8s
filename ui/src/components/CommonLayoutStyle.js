@@ -55,7 +55,7 @@ export const PageContentContainer = styled.div`
 export const TabContainer = styled.div`
   background-color: ${(props) => props.theme.brand.primaryDark1};
   color: ${(props) => props.theme.brand.textPrimary};
-  padding-top: 25px;
+  padding-top: ${padding.small};
 `;
 
 export const TabTitle = styled.div`

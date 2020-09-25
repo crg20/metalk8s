@@ -293,7 +293,7 @@ function Table({ columns, data, nodeName, rowClicked, volumeName, theme }) {
 }
 
 const VolumeListTable = (props) => {
-  const { nodeName, volumeListData, volumeName } = props;
+  const { nodeName, volumeListData, volumeName, isNodeColumn } = props;
   const history = useHistory();
   const location = useLocation();
 
@@ -304,17 +304,15 @@ const VolumeListTable = (props) => {
       {
         Header: 'Name',
         accessor: 'name',
-        width: 200,
       },
-      { Header: 'Node', accessor: 'node' },
       {
         Header: 'Usage',
         accessor: 'usage',
-        cellStyle: { textAlign: 'center' },
+        cellStyle: { textAlign: 'center', width: '100px' },
         Cell: ({ value }) => {
           return (
             <ProgressBar
-              size="base"
+              size="large"
               percentage={value}
               buildinLabel={`${value}%`}
               backgroundColor={theme.brand.primaryDark1}
@@ -388,6 +386,10 @@ const VolumeListTable = (props) => {
     ],
     [volumeListData, theme],
   );
+  const nodeCol = { Header: 'Node', accessor: 'node' };
+  if (isNodeColumn) {
+    columns.splice(1, 0, nodeCol);
+  }
 
   // handle the row selection by updating the URL
   const onClickRow = (row) => {
@@ -395,7 +397,7 @@ const VolumeListTable = (props) => {
     const isAddNodeFilter = query.has('node');
 
     // there are two possiable URLs
-    if (isAddNodeFilter) {
+    if (isAddNodeFilter || !isNodeColumn) {
       history.push(`/volumes/${row.values.name}?node=${nodeName}`);
     } else {
       history.push(`/volumes/${row.values.name}`);

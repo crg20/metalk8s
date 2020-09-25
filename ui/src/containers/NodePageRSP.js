@@ -180,7 +180,9 @@ const NodePageRSP = (props) => {
           />
           <Route
             path={`/newNodes/${selectedNodeName}/volumes`}
-            component={NodePageVolumesTab}
+            render={() => (
+              <NodePageVolumesTab selectedNodeName={selectedNodeName} />
+            )}
           />
           <Route
             path={`/newNodes/${selectedNodeName}/pods`}

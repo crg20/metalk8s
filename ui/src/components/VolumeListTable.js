@@ -153,7 +153,7 @@ function GlobalFilter({
         width: '223px',
         height: '27px',
         borderRadius: '4px',
-        backgroundColor: theme.brand.primaryDark2,
+        backgroundColor: theme.brand.primary,
         fontFamily: 'Lato',
         fontStyle: 'italic',
         opacity: '0.6',
@@ -278,11 +278,10 @@ function Table({
               <td
                 style={{
                   textAlign: 'center',
-                  background: theme.brand.primaryDark2,
+                  background: theme.brand.primaryDark1,
                 }}
               >
-                <i className="fas fa-exclamation-triangle"></i> {'  '}No Volume
-                found
+                No Volume
               </td>
             </HeadRow>
           ) : null}

@@ -21,26 +21,18 @@ const ActiveAlertsTableContainer = styled.div`
   table {
     border-spacing: 0;
 
-    tr {
-      :last-child {
-        td {
-          border-bottom: 0;
-          font-weight: normal;
-        }
-      }
-    }
-
     th {
       font-weight: bold;
       height: 56px;
     }
 
     td {
-      height: 80px;
       margin: 0;
       padding: 0.5rem;
       border-bottom: 1px solid black;
-      height: 30px;
+      text-align: left;
+      padding: 5px;
+
       :last-child {
         border-right: 0;
       }
@@ -66,9 +58,11 @@ const SelectorContainer = styled.div`
     color: yellow;
   }
 `;
+
 const TabTitleContainer = styled.div`
   display: flex;
 `;
+
 const TabTitle = styled.span`
   font-weight: ${fontWeight.bold};
   color: ${(props) => props.theme.brand.textSecondary};
@@ -91,20 +85,21 @@ const SelectorText = styled.span`
 `;
 
 const NodePageAlertsTab = (props) => {
+  const { alertsNode } = props;
   const theme = useSelector((state) => state.config.theme);
-  const alertsNumInTotal = 2;
+  const alertsNumInTotal = alertsNode.length;
   const criticalAlertsNum = 0;
   const warningAlertsNum = 2;
-  // const { alertlist } = props;
 
-  // const activeAlertListData = alertlist?.map((alert) => {
-  //   return {
-  //     name: alert.labels.alertname,
-  //     severity: alert.labels.severity,
-  //     alert_description: alert.annotations.message,
-  //     active_since: alert.activeAt,
-  //   };
-  // });
+  const activeAlertListData = alertsNode?.map((alert) => {
+    return {
+      name: alert.labels.alertname,
+      severity: alert.labels.severity,
+      alert_description: alert.annotations.message,
+      active_since: alert.startsAt,
+    };
+  });
+
   // React Table for the volume list
   function Table({ columns, data }) {
     // Use the state and functions returned from useTable to build your UI
@@ -168,11 +163,10 @@ const NodePageAlertsTab = (props) => {
                         </td>
                       );
                     }
-                  } else {
-                    return (
-                      <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                    );
                   }
+                  return (
+                    <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                  );
                 })}
               </tr>
             );
@@ -184,8 +178,16 @@ const NodePageAlertsTab = (props) => {
   // columns for alert table
   const columns = React.useMemo(
     () => [
-      { Header: 'Name', accessor: 'name' },
-      { Header: 'Severity', accessor: 'severity' },
+      {
+        Header: 'Name',
+        accessor: 'name',
+        cellStyle: { width: '70px' },
+      },
+      {
+        Header: 'Severity',
+        accessor: 'severity',
+        cellStyle: { textAlign: 'center', width: '70px' },
+      },
       { Header: 'Description', accessor: 'alert_description' },
       { Header: 'Active since', accessor: 'active_since' },
     ],
@@ -225,7 +227,7 @@ const NodePageAlertsTab = (props) => {
         </SelectorContainer>
       </AlertServeritySelectorContainer>
       <ActiveAlertsTableContainer>
-        <Table columns={columns} data={[]} />
+        <Table columns={columns} data={activeAlertListData} />
       </ActiveAlertsTableContainer>
     </TabContainer>
   );

@@ -1,14 +1,21 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Switch, Route } from 'react-router-dom';
 import { useHistory, useLocation } from 'react-router';
 import styled from 'styled-components';
 import { Tabs } from '@scality/core-ui';
 import { padding } from '@scality/core-ui/dist/style/theme';
+import {
+  refreshAlertManagerAction,
+  stopRefreshAlertManagerAction,
+} from '../ducks/app/alerts';
+import { useRefreshEffect } from '../services/utils';
 import NodePageHealthTab from '../components/NodePageHealthTab';
 import NodePageAlertsTab from '../components/NodePageAlertsTab';
 import NodePageMetricsTab from '../components/NodePageMetricsTab';
 import NodePageVolumesTab from '../components/NodePageVolumesTab';
 import NodePagePodsTab from '../components/NodePagePodsTab';
+import { NODE_ALERTS_GROUP, PORT_NUMBER_PROMETHEUS } from '../constants';
 import { intl } from '../translations/IntlGlobalProvider';
 
 const NodePageRSPContainer = styled.div`
@@ -24,7 +31,16 @@ const NodePageRSPContainer = styled.div`
 const NodePageRSP = (props) => {
   const history = useHistory();
   const location = useLocation();
-  const { selectedNodeName } = props;
+  const { selectedNodeName, instanceIP } = props;
+
+  useRefreshEffect(refreshAlertManagerAction, stopRefreshAlertManagerAction);
+  const alerts = useSelector((state) => state.app.alerts.list);
+
+  const alertsNode = alerts?.filter(
+    (alert) =>
+      NODE_ALERTS_GROUP.includes(alert.labels.alertname) &&
+      alert?.labels?.instance === instanceIP + ':' + PORT_NUMBER_PROMETHEUS,
+  );
 
   const isHealthTabActive = location.pathname.endsWith('/health');
   const isAlertsTabActive = location.pathname.endsWith('/alerts');
@@ -70,7 +86,9 @@ const NodePageRSP = (props) => {
           />
           <Route
             path={`/newNodes/${selectedNodeName}/alerts`}
-            component={NodePageAlertsTab}
+            render={() => (
+              <NodePageAlertsTab alertsNode={alertsNode}></NodePageAlertsTab>
+            )}
           />
           <Route
             path={`/newNodes/${selectedNodeName}/metrics`}

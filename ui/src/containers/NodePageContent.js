@@ -20,10 +20,13 @@ const NodePageRSPContainer = styled.div`
 
 const NodePageContent = (props) => {
   const { nodeTableData } = props;
-
   const history = useHistory();
   const selectedNodeName =
     history?.location?.pathname?.split('/')?.slice(2)[0] || '';
+
+  const instanceIP = nodeTableData?.find(
+    (node) => node.name.name === selectedNodeName,
+  )?.name?.controlPlaneIP;
 
   return (
     <PageContentContainer>
@@ -35,7 +38,10 @@ const NodePageContent = (props) => {
       </LeftSideInstanceList>
       {selectedNodeName ? (
         <NodePageRSPContainer>
-          <NodePageRSP selectedNodeName={selectedNodeName} />
+          <NodePageRSP
+            selectedNodeName={selectedNodeName}
+            instanceIP={instanceIP}
+          />
         </NodePageRSPContainer>
       ) : (
         <NoInstanceSelectedContainer>

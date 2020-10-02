@@ -9,8 +9,8 @@ Supported Versions
 ******************
 .. note::
 
-    MetalK8 supports upgrade **strictly** from one supported
-    minor version to another. For example:
+    MetalK8s supports upgrade **strictly** from one minor version to another.
+    For example:
 
     - Upgrade from 2.0.x to 2.0.x
     - Upgrade from 2.0.x to 2.1.x

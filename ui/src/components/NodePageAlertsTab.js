@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useHistory } from 'react-router';
 import { FormattedDate, FormattedTime } from 'react-intl';
 import styled from 'styled-components';
 import { Chips, Checkbox } from '@scality/core-ui';
@@ -10,6 +11,7 @@ import {
   grayDarkest,
 } from '@scality/core-ui/dist/style/theme';
 import { useTable } from 'react-table';
+import { useQuery } from '../services/utils';
 import { STATUS_WARNING, STATUS_CRITICAL } from '../constants';
 import { TabContainer } from './CommonLayoutStyle';
 
@@ -88,11 +90,15 @@ const Selector = styled.div`
 const NodePageAlertsTab = (props) => {
   const { alertsNode } = props;
   const theme = useSelector((state) => state.config.theme);
+  const history = useHistory();
+  const query = useQuery();
+  const alertSeverityURL = query.get('severity');
+  const [alertSeverity, setAlertSeverity] = useState([alertSeverityURL]);
+
   const alertsNumInTotal = alertsNode.length;
   const criticalAlertsNum = 0;
   const warningAlertsNum = 2;
-  const [isCriticalSelected, setIsCriticalSelected] = useState(false);
-  const [isWarningSelected, setIsWarningSelected] = useState(false);
+
   const activeAlertListData = alertsNode?.map((alert) => {
     return {
       name: alert.labels.alertname,
@@ -197,11 +203,10 @@ const NodePageAlertsTab = (props) => {
   );
 
   const onClickSelector = (severity) => {
-    if (severity === STATUS_CRITICAL) {
-      setIsCriticalSelected(!isCriticalSelected);
-    } else if (severity === STATUS_WARNING) {
-      setIsWarningSelected(!isWarningSelected);
-    }
+    setAlertSeverity(severity);
+    // Set the Alert Severity in URL
+    query.set('severity', severity);
+    history.push({ search: query.toString() });
   };
 
   return (
@@ -214,7 +219,7 @@ const NodePageAlertsTab = (props) => {
         <SelectorContainer>
           <Selector>
             <Checkbox
-              checked={isCriticalSelected}
+              checked={alertSeverity === STATUS_CRITICAL}
               label="Critical"
               onChange={() => onClickSelector(STATUS_CRITICAL)}
             />
@@ -225,7 +230,7 @@ const NodePageAlertsTab = (props) => {
           </Selector>
           <Selector>
             <Checkbox
-              checked={isWarningSelected}
+              checked={alertSeverity === STATUS_WARNING}
               label="Warning"
               onChange={() => onClickSelector(STATUS_WARNING)}
             />

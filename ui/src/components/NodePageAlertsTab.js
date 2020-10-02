@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FormattedDate, FormattedTime } from 'react-intl';
 import styled from 'styled-components';
-import { Chips } from '@scality/core-ui';
+import { Chips, Checkbox } from '@scality/core-ui';
 import {
   fontSize,
   padding,
@@ -10,6 +10,7 @@ import {
   grayDarkest,
 } from '@scality/core-ui/dist/style/theme';
 import { useTable } from 'react-table';
+import { STATUS_WARNING, STATUS_CRITICAL } from '../constants';
 import { TabContainer } from './CommonLayoutStyle';
 
 const ActiveAlertsTableContainer = styled.div`
@@ -77,11 +78,11 @@ const AlertNumber = styled.div`
 `;
 
 const Selector = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 140px;
   padding-right: ${padding.right};
-`;
-
-const SelectorText = styled.span`
-  padding: 0 ${padding.smaller} 0 ${padding.smaller};
 `;
 
 const NodePageAlertsTab = (props) => {
@@ -90,7 +91,8 @@ const NodePageAlertsTab = (props) => {
   const alertsNumInTotal = alertsNode.length;
   const criticalAlertsNum = 0;
   const warningAlertsNum = 2;
-
+  const [isCriticalSelected, setIsCriticalSelected] = useState(false);
+  const [isWarningSelected, setIsWarningSelected] = useState(false);
   const activeAlertListData = alertsNode?.map((alert) => {
     return {
       name: alert.labels.alertname,
@@ -194,6 +196,14 @@ const NodePageAlertsTab = (props) => {
     [],
   );
 
+  const onClickSelector = (severity) => {
+    if (severity === STATUS_CRITICAL) {
+      setIsCriticalSelected(!isCriticalSelected);
+    } else if (severity === STATUS_WARNING) {
+      setIsWarningSelected(!isWarningSelected);
+    }
+  };
+
   return (
     <TabContainer>
       <AlertServeritySelectorContainer>
@@ -203,26 +213,26 @@ const NodePageAlertsTab = (props) => {
         </TabTitleContainer>
         <SelectorContainer>
           <Selector>
-            <input
-              type="checkbox"
-              id="severity"
-              name="severity"
-              value="critical"
-            ></input>
-            <i className="fas fa-times-circle"></i>
-            <SelectorText>Critical</SelectorText>
-            <span>{criticalAlertsNum}</span>
+            <Checkbox
+              checked={isCriticalSelected}
+              label="Critical"
+              onChange={() => onClickSelector(STATUS_CRITICAL)}
+            />
+            <div>
+              <i className="fas fa-times-circle"></i>
+            </div>
+            <div>{criticalAlertsNum}</div>
           </Selector>
           <Selector>
-            <input
-              type="checkbox"
-              id="severity"
-              name="severity"
-              value="critical"
-            ></input>
-            <i className="fas fa-exclamation-triangle"></i>
-            <SelectorText>Warning</SelectorText>
-            <span>{warningAlertsNum}</span>
+            <Checkbox
+              checked={isWarningSelected}
+              label="Warning"
+              onChange={() => onClickSelector(STATUS_WARNING)}
+            />
+            <div>
+              <i className="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>{warningAlertsNum}</div>
           </Selector>
         </SelectorContainer>
       </AlertServeritySelectorContainer>

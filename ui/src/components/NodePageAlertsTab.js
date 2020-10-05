@@ -1,19 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
 import { FormattedDate, FormattedTime } from 'react-intl';
 import styled from 'styled-components';
-import { Chips, Checkbox } from '@scality/core-ui';
-import {
-  fontSize,
-  padding,
-  fontWeight,
-  grayDarkest,
-} from '@scality/core-ui/dist/style/theme';
+import { Chips } from '@scality/core-ui';
+import { fontSize, padding } from '@scality/core-ui/dist/style/theme';
 import { useTable } from 'react-table';
+import AlertSeveritySelector from './AlertSeveritySelector';
 import { useQuery } from '../services/utils';
-import { STATUS_WARNING, STATUS_CRITICAL } from '../constants';
 import { TabContainer } from './CommonLayoutStyle';
+import { STATUS_WARNING, STATUS_CRITICAL } from '../constants';
 
 const ActiveAlertsTableContainer = styled.div`
   color: ${(props) => props.theme.brand.textPrimary};
@@ -42,71 +37,54 @@ const ActiveAlertsTableContainer = styled.div`
     }
   }
 `;
-const AlertServeritySelectorContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  padding: ${padding.large} 0 0 ${padding.larger};
-  justify-content: space-between;
+
+const HeadRow = styled.tr`
+  width: 100%;
+  /* To display scroll bar on the table */
+  display: table;
+  table-layout: fixed;
 `;
 
-const SelectorContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  width: 390px;
-  .fa-times-circle {
-    color: red;
-  }
-  .fa-exclamation-triangle {
-    color: yellow;
-  }
-`;
-
-const TabTitleContainer = styled.div`
-  display: flex;
-`;
-
-const TabTitle = styled.span`
-  font-weight: ${fontWeight.bold};
-  color: ${(props) => props.theme.brand.textSecondary};
-`;
-
-const AlertNumber = styled.div`
-  width: 24px;
-  font-weight: ${fontWeight.bold};
-  background-color: ${grayDarkest};
-  border-radius: 3px;
-  padding-left: ${padding.smaller};
-`;
-
-const Selector = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 140px;
-  padding-right: ${padding.right};
+const Body = styled.tbody`
+  /* To display scroll bar on the table */
+  display: block;
+  height: calc(100vh - 250px);
+  overflow: auto;
+  overflow-y: scroll;
 `;
 
 const NodePageAlertsTab = (props) => {
   const { alertsNode } = props;
   const theme = useSelector((state) => state.config.theme);
-  const history = useHistory();
   const query = useQuery();
-  const alertSeverityURL = query.get('severity');
-  const [alertSeverity, setAlertSeverity] = useState([alertSeverityURL]);
+  // Retrieve the severity filter from URL.
+  // Filter more than one severity, the URL should be:
+  // `/newNodes/<node-name>/alerts?severity=warning&severity=critical`
+  let alertSeverity = query.getAll('severity');
 
-  const alertsNumInTotal = alertsNode.length;
-  const criticalAlertsNum = 0;
-  const warningAlertsNum = 2;
+  // Display all the alerts when there is no severity filter
+  if (alertSeverity?.length === 0) {
+    alertSeverity.push(STATUS_WARNING, STATUS_CRITICAL);
+  }
 
-  const activeAlertListData = alertsNode?.map((alert) => {
-    return {
-      name: alert.labels.alertname,
-      severity: alert.labels.severity,
-      alert_description: alert.annotations.message,
-      active_since: alert.startsAt,
-    };
-  });
+  const alertsNumInTotal = alertsNode?.length;
+  const criticalAlertsNum = alertsNode?.filter(
+    (alert) => alert.labels.severity === STATUS_CRITICAL,
+  )?.length;
+  const warningAlertsNum = alertsNode?.filter(
+    (alert) => alert.labels.severity === STATUS_WARNING,
+  )?.length;
+
+  const activeAlertListData = alertsNode
+    ?.map((alert) => {
+      return {
+        name: alert.labels.alertname,
+        severity: alert.labels.severity,
+        alertDescription: alert.annotations.message,
+        activeSince: alert.startsAt,
+      };
+    })
+    .filter((alert) => alertSeverity.includes(alert.severity));
 
   // React Table for the volume list
   function Table({ columns, data }) {
@@ -126,23 +104,51 @@ const NodePageAlertsTab = (props) => {
     return (
       <table {...getTableProps()}>
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-              ))}
-            </tr>
-          ))}
+          {headerGroups.map((headerGroup) => {
+            return (
+              <HeadRow {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map((column) => {
+                  const headerStyleProps = column.getHeaderProps({
+                    style: column.cellStyle,
+                  });
+                  return (
+                    <th {...headerStyleProps}>{column.render('Header')}</th>
+                  );
+                })}
+              </HeadRow>
+            );
+          })}
         </thead>
-        <tbody {...getTableBodyProps()}>
+        <Body {...getTableBodyProps()}>
+          {activeAlertListData.length === 0 ? (
+            <HeadRow
+              style={{
+                width: '100%',
+                paddingTop: padding.base,
+                height: '60px',
+              }}
+            >
+              <td
+                style={{
+                  textAlign: 'center',
+                  background: theme.brand.primaryDark1,
+                }}
+              >
+                No Active Alert
+              </td>
+            </HeadRow>
+          ) : null}
           {rows.map((row, i) => {
             prepareRow(row);
             return (
-              <tr {...row.getRowProps()}>
+              <HeadRow {...row.getRowProps()}>
                 {row.cells.map((cell) => {
+                  let cellProps = cell.getCellProps({
+                    style: { ...cell.column.cellStyle },
+                  });
                   if (cell.column.Header === 'Active since') {
                     return (
-                      <td {...cell.getCellProps()}>
+                      <td {...cellProps}>
                         <span>
                           <FormattedDate value={cell.value} />{' '}
                           <FormattedTime
@@ -155,31 +161,32 @@ const NodePageAlertsTab = (props) => {
                       </td>
                     );
                   } else if (cell.column.Header === 'Severity') {
-                    if (cell.value === 'warning') {
+                    if (cell.value === STATUS_WARNING) {
                       return (
-                        <td {...cell.getCellProps()}>
-                          <Chips text={cell.render('Cell')} variant="warning" />
-                        </td>
-                      );
-                    } else if (cell.value === 'critical') {
-                      return (
-                        <td {...cell.getCellProps()}>
+                        <td {...cellProps}>
                           <Chips
                             text={cell.render('Cell')}
-                            variant="critical"
+                            variant={STATUS_WARNING}
+                          />
+                        </td>
+                      );
+                    } else if (cell.value === STATUS_CRITICAL) {
+                      return (
+                        <td {...cellProps}>
+                          <Chips
+                            text={cell.render('Cell')}
+                            variant={STATUS_CRITICAL}
                           />
                         </td>
                       );
                     }
                   }
-                  return (
-                    <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                  );
+                  return <td {...cellProps}>{cell.render('Cell')}</td>;
                 })}
-              </tr>
+              </HeadRow>
             );
           })}
-        </tbody>
+        </Body>
       </table>
     );
   }
@@ -189,58 +196,32 @@ const NodePageAlertsTab = (props) => {
       {
         Header: 'Name',
         accessor: 'name',
-        cellStyle: { width: '70px' },
+        cellStyle: { width: '200px' },
       },
       {
         Header: 'Severity',
         accessor: 'severity',
-        cellStyle: { textAlign: 'center', width: '70px' },
+        cellStyle: { textAlign: 'center', width: '100px' },
       },
-      { Header: 'Description', accessor: 'alert_description' },
-      { Header: 'Active since', accessor: 'active_since' },
+      { Header: 'Description', accessor: 'alertDescription' },
+      {
+        Header: 'Active since',
+        accessor: 'activeSince',
+        cellStyle: { textAlign: 'center', width: '150px' },
+      },
     ],
     [],
   );
 
-  const onClickSelector = (severity) => {
-    setAlertSeverity(severity);
-    // Set the Alert Severity in URL
-    query.set('severity', severity);
-    history.push({ search: query.toString() });
-  };
-
   return (
     <TabContainer>
-      <AlertServeritySelectorContainer>
-        <TabTitleContainer>
-          <TabTitle theme={theme}>Active Alerts</TabTitle>
-          <AlertNumber>{alertsNumInTotal}</AlertNumber>
-        </TabTitleContainer>
-        <SelectorContainer>
-          <Selector>
-            <Checkbox
-              checked={alertSeverity === STATUS_CRITICAL}
-              label="Critical"
-              onChange={() => onClickSelector(STATUS_CRITICAL)}
-            />
-            <div>
-              <i className="fas fa-times-circle"></i>
-            </div>
-            <div>{criticalAlertsNum}</div>
-          </Selector>
-          <Selector>
-            <Checkbox
-              checked={alertSeverity === STATUS_WARNING}
-              label="Warning"
-              onChange={() => onClickSelector(STATUS_WARNING)}
-            />
-            <div>
-              <i className="fas fa-exclamation-triangle"></i>
-            </div>
-            <div>{warningAlertsNum}</div>
-          </Selector>
-        </SelectorContainer>
-      </AlertServeritySelectorContainer>
+      <AlertSeveritySelector
+        theme={theme}
+        alertSeverity={alertSeverity}
+        alertsNumInTotal={alertsNumInTotal}
+        criticalAlertsNum={criticalAlertsNum}
+        warningAlertsNum={warningAlertsNum}
+      ></AlertSeveritySelector>
       <ActiveAlertsTableContainer>
         <Table columns={columns} data={activeAlertListData} />
       </ActiveAlertsTableContainer>

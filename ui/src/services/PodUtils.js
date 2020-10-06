@@ -11,6 +11,7 @@ export const getPodsListData = (nodeName, pods) => {
       const numContainer = pod?.containerStatuses?.length;
       const containerReady =
         pod?.containerStatuses?.filter((pCS) => pCS.ready === true) ?? [];
+
       return {
         name: pod.name,
         age: age,

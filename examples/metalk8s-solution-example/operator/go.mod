@@ -7,9 +7,8 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/operator-framework/operator-sdk v0.17.0
+	github.com/scality/metalk8s/go/solution-operator v0.0.0-20201012085821-5d26f997b79b
 	github.com/spf13/pflag v1.0.5
-	gopkg.in/go-playground/validator.v9 v9.31.0
-	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.17.4
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible

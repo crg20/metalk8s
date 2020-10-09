@@ -237,11 +237,25 @@ Open a terminal in the Salt Master container using
 #. Check that SSH access from the Salt Master to the new node is properly
    configured (see :ref:`Bootstrap SSH Provisioning`).
 
+   .. note::
+
+     You need to use `salt-ssh` as raw ssh since `salt-ssh` need Python3
+     installed to work properly (that will be installed by the following
+     salt orchestrate).
+
    .. code-block:: shell
 
-      root@salt-master-bootstrap $ salt-ssh --roster kubernetes <node-name> test.ping
-      <node-name>:
-          True
+      root@salt-master-bootstrap $ salt-ssh --roster=kubernetes <node_name> --raw-shell 'echo OK'
+      <node_name>:
+          ----------
+          retcode:
+              0
+          stderr:
+              Warning: Permanently added '<ip>' (ECDSA) to the list of known hosts.
+          stdout:
+              OK
+
+
 
 #. Start the node deployment.
 

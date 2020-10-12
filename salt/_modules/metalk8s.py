@@ -2,6 +2,7 @@
 '''
 Module for handling MetalK8s specific calls.
 '''
+import functools
 import logging
 import os.path
 import re
@@ -342,3 +343,14 @@ def format_slots(data):
             )
 
     return data
+
+
+def cmp_sorted(*args, **kwargs):
+    """Helper to sort a list using a function to compare (as `cmp` in Python2)
+
+    Usefull when we want to sort a list in Jinja
+    """
+    if 'cmp' in kwargs:
+        kwargs['key'] = functools.cmp_to_key(kwargs.pop('cmp'))
+
+    return sorted(*args, **kwargs)

@@ -1,3 +1,5 @@
+{%- from "metalk8s/map.jinja" import defaults with context %}
+
 {%- set dest_version = pillar.metalk8s.cluster_version %}
 
 {#- When downgrading saltenv should be the newest version #}
@@ -13,6 +15,13 @@ Invalid saltenv "{{ saltenv }}" consider using "metalk8s-{{ expected }}":
 
 Correct saltenv "{{ saltenv }}" for downgrade to "{{ dest_version }}":
   test.succeed_without_changes
+
+{%- endif %}
+
+{%- if not defaults.downgrade_supported and not pillar.force_downgrade | default(False) %}
+
+Downgrade from current version is not supported:
+  test.fail_without_changes
 
 {%- endif %}
 
